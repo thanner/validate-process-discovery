@@ -1,4 +1,5 @@
 import os
+import threading
 
 import pandas as pd
 from pm4py.algo.analysis.woflan import algorithm as woflan
@@ -46,7 +47,8 @@ def calculate_fscore(fitness, precision):
 
 def calculate_metrics(petrinet_approach_name, log, net, im, fm):
     fitness = replay_fitness_evaluator.apply(log, net, im, fm,
-                                             variant=replay_fitness_evaluator.Variants.ALIGNMENT_BASED)
+                                             variant=replay_fitness_evaluator.Variants.ALIGNMENT_BASED)[
+        'averageFitness']
     precision = precision_evaluator.apply(log, net, im, fm, variant=precision_evaluator.Variants.ALIGN_ETCONFORMANCE)
     generalization = generalization_evaluator.apply(log, net, im, fm)
     simplicity = simplicity_evaluator.apply(net)
@@ -70,18 +72,22 @@ def save_results(process_name, results):
     df.to_csv(dataframe_name, columns=columns, index=False)
 
 
+def analyze_petrinet_approach(process_name, log, petrinet_approach_name):
+    try:
+        check_petrinet_approach_already_analyzed(process_name, petrinet_approach_name)
+        petrinet_name = os.path.join(petrinet_approach_name, f"{process_name}.pnml")
+        net, im, fm = import_petrinet(petrinet_name)
+        check_sound(petrinet_name, net, im, fm)
+        print(f"Start calculate metrics for approach {petrinet_approach_name} and process {process_name}")
+        results = calculate_metrics(petrinet_approach_name, log, net, im, fm)
+        save_results(process_name, results)
+    except Exception as e:
+        print(str(e))
+
+
 def handle_log_analysis(process_name, log):
     for petrinet_approach_name in sorted(os.listdir(petrinet_path)):
-        try:
-            check_petrinet_approach_already_analyzed(process_name, petrinet_approach_name)
-            petrinet_name = os.path.join(petrinet_approach_name, f"{process_name}.pnml")
-            net, im, fm = import_petrinet(petrinet_name)
-            check_sound(petrinet_name, net, im, fm)
-            print(f"Start calculate metrics for approach {petrinet_approach_name} and process {process_name}")
-            results = calculate_metrics(petrinet_approach_name, log, net, im, fm)
-            save_results(process_name, results)
-        except Exception as e:
-            print(str(e))
+        threading.Thread(target=analyze_petrinet_approach, args=(process_name, log, petrinet_approach_name)).start()
 
 
 def make_analysis():
@@ -93,3 +99,10 @@ def make_analysis():
 
 
 make_analysis()
+
+#########
+# Análise
+#########
+# Fitness está dando igual
+# Precision (e f-score) está diferente
+# Está considerando mais elementos como unsound
