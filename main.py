@@ -110,3 +110,4 @@ make_analysis()
 # Precision (e f-score) está diferente
 # Está considerando mais elementos como unsound
 # Time é o tempo de execução dos testes com threads (não o tempo de descoberta)
+# Falta Sound em todos ETM
