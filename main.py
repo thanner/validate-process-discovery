@@ -1,7 +1,8 @@
 import os
 import threading
-
 import pandas as pd
+from datetime import datetime
+
 from pm4py.algo.analysis.woflan import algorithm as woflan
 from pm4py.algo.evaluation.generalization import evaluator as generalization_evaluator
 from pm4py.algo.evaluation.precision import evaluator as precision_evaluator
@@ -14,7 +15,7 @@ log_path = "resource/log/pre-processed"
 petrinet_path = "resource/model"
 results_path = "resource/results"
 
-columns = ["name", "fitness", "precision", "f-score", "generalization", "simplicity"]
+columns = ["name", "fitness", "precision", "f-score", "generalization", "simplicity", "time (sec)"]
 
 
 def import_log(log_name):
@@ -46,6 +47,7 @@ def calculate_fscore(fitness, precision):
 
 
 def calculate_metrics(petrinet_approach_name, log, net, im, fm):
+    start_time = datetime.now()
     fitness = replay_fitness_evaluator.apply(log, net, im, fm,
                                              variant=replay_fitness_evaluator.Variants.ALIGNMENT_BASED)[
         'averageFitness']
@@ -53,8 +55,9 @@ def calculate_metrics(petrinet_approach_name, log, net, im, fm):
     generalization = generalization_evaluator.apply(log, net, im, fm)
     simplicity = simplicity_evaluator.apply(net)
     fscore = calculate_fscore(fitness, precision)
+    time = "{:.3f}".format((datetime.now() - start_time).total_seconds())
     results = {"name": petrinet_approach_name, "fitness": fitness, "precision": precision, "f-score": fscore,
-               "generalization": generalization, "simplicity": simplicity}
+               "generalization": generalization, "simplicity": simplicity, "time (sec)": time}
     return results
 
 
@@ -106,3 +109,4 @@ make_analysis()
 # Fitness está dando igual
 # Precision (e f-score) está diferente
 # Está considerando mais elementos como unsound
+# Time é o tempo de execução dos testes com threads (não o tempo de descoberta)

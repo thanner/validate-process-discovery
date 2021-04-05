@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/process-discovery-approaches-test.iml" filepath="$PROJECT_DIR$/.idea/process-discovery-approaches-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/validate-process-discovery.iml" filepath="$PROJECT_DIR$/.idea/validate-process-discovery.iml" />
     </modules>
   </component>
 </project>
